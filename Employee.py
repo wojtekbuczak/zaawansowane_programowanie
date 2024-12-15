@@ -10,4 +10,4 @@ class Employee:
         self.phone = phone
 
     def __str__(self):
-        return f''
+        return f'Pracownik biblioteki o imieniu {self.first_name} nazwisku {self.last_name} dacie zatrudnienia {self.hire_date}, urodzenia {self.birth_date}, oraz adresem {self.city} {self.street} {self.zip_code} i numerem telefonu {self.phone}.'
