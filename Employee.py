@@ -8,3 +8,6 @@ class Employee:
         self.street = street
         self.zip_code = zip_code
         self.phone = phone
+
+    def __str__(self):
+        return f''

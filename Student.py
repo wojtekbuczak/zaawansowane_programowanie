@@ -9,3 +9,6 @@ class Student:
             return True
         else:
             return False
+
+    def __str__(self):
+        return f'Student z imieniem {self.name} i średnią ocen {self.marks}.'

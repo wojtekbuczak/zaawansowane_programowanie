@@ -5,3 +5,6 @@ class Book:
         self.author_name = author_name
         self.author_surname = author_surname
         self.number_of_pages = number_of_pages
+
+    def __str__(self):
+        return f''

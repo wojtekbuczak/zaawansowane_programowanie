@@ -4,3 +4,6 @@ class Order:
         self.student = student
         self.books = books
         self.order_date = order_date
+
+    def __str__(self):
+        return f''
