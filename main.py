@@ -1,9 +1,6 @@
 
 # import do zadania 1
-from magazyn.Product import test2
+from magazyn import Product
 
-# test poprawnosci dzialania
-from magazyn.utils import test
-test()
-
-test2()
+Product.funkcja_product()
+Product.test2()
