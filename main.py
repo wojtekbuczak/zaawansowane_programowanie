@@ -16,13 +16,16 @@ def odczytaj_tekst_z_obrazu_pil(sciezka_do_obrazu):
 def odczytaj_tekst_z_obrazu_cv2(sciezka_do_obrazu):
     try:
         obraz = cv2.imread(sciezka_do_obrazu)
-        tekst = pytesseract.image_to_string(obraz, lang='pol')
+        converted_img = cv2.medianBlur(obraz, 3)
+        tekst = pytesseract.image_to_string(converted_img, lang='pol')
+        #print(type(obraz))
+        #print(obraz.shape)
         return tekst
     except Exception as e:
         return f"Błąd podczas przetwarzania obrazu: {e}"
 
 
-sciezka = ("obrazy\\nba1.jpg")
+sciezka = ("obrazy\\test1.jpg")
 wynik = odczytaj_tekst_z_obrazu_cv2(sciezka)
 print("Odczytany tekst:")
 print(wynik)
