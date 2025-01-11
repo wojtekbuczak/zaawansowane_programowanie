@@ -6,7 +6,6 @@ import csv
 app = Flask(__name__)
 api = Api(app)
 
-# Klasa Movie - model danych
 class Movie:
     def __init__(self, movieId, title, genres):
         self.movieId = movieId
@@ -15,6 +14,35 @@ class Movie:
 
     def __repr__(self):
         return f"<Movie {self.movieId}>"
+
+class Links:
+    def __init__(self, movieId, imdbId, tmdbId):
+        self.movieId = movieId
+        self.imdbId = imdbId
+        self.tmdbId = tmdbId
+
+    def __repr__(self):
+        return f"<Links {self.movieId}>"
+
+class Ratings:
+    def __init__(self, userId, movieId, rating, timestamp):
+        self.userId = userId
+        self.movieId = movieId
+        self.rating = rating
+        self.timestamp = timestamp
+
+    def __repr__(self):
+        return f"<Ratings {self.userId}>"
+
+class Tags:
+    def __init__(self, userId, movieId, tag, timestamp):
+        self.userId = userId
+        self.movieId = movieId
+        self.tag = tag
+        self.timestamp = timestamp
+
+    def __repr__(self):
+        return f"<Tags {self.userId}>"
 
 # Klasa obsługująca endpoint /movies
 class MoviesList(Resource):
@@ -36,8 +64,71 @@ class MoviesList(Resource):
         # Zwracanie listy zserializowanych obiektów
         return movies, 200
 
-# Rejestracja endpointu
+# Klasa obsługująca endpoint /links
+class LinksList(Resource):
+    def get(self):
+        links = []
+
+        # Pobranie danych z pliku CSV
+        try:
+            with open('links.csv', 'r', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    # Tworzenie obiektu Links na podstawie wiersza
+                    link = Links(row['movieId'], row['imdbId'], row['tmdbId'])
+                    # Serializacja obiektu przy użyciu __dict__
+                    links.append(link.__dict__)
+        except FileNotFoundError:
+            return {"error": "File not found"}, 404
+
+        # Zwracanie listy zserializowanych obiektów
+        return links, 200
+
+# Klasa obsługująca endpoint /ratings
+class RatingList(Resource):
+    def get(self):
+        ratings = []
+
+        # Pobranie danych z pliku CSV
+        try:
+            with open('ratings.csv', 'r', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    # Tworzenie obiektu Links na podstawie wiersza
+                    rating = Ratings(row['userId'], row['movieId'], row['rating'], row['timestamp'])
+                    # Serializacja obiektu przy użyciu __dict__
+                    ratings.append(rating.__dict__)
+        except FileNotFoundError:
+            return {"error": "File not found"}, 404
+
+        # Zwracanie listy zserializowanych obiektów
+        return ratings, 200
+
+# Klasa obsługująca endpoint /tags
+class TagList(Resource):
+    def get(self):
+        links = []
+
+        # Pobranie danych z pliku CSV
+        try:
+            with open('links.csv', 'r', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    # Tworzenie obiektu Links na podstawie wiersza
+                    link = Links(row['movieId'], row['imdbId'], row['tmdbId'])
+                    # Serializacja obiektu przy użyciu __dict__
+                    links.append(link.__dict__)
+        except FileNotFoundError:
+            return {"error": "File not found"}, 404
+
+        # Zwracanie listy zserializowanych obiektów
+        return links, 200
+
+# Rejestracja endpointów
 api.add_resource(MoviesList, '/movies')
+api.add_resource(LinksList, '/links')
+api.add_resource(RatingList, '/ratings')
+api.add_resource(TagList, '/tags')
 
 if __name__ == '__main__':
     app.run(debug=True)
