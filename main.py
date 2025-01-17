@@ -7,8 +7,7 @@ app = Flask(__name__)
 # pliki potrzebne do załadowania - do weryfikacji i odszukania
 MODEL_PATH = "ssd_mobilenet_v3_large_coco.pb"
 CONFIG_PATH = "ssd_mobilenet_v3_large_coco.pbtxt"
-CLASSES_PATH = "coco.names"
-OUTPUT_DIR = "output_images"
+OUTPUT_DIR = r"C:\\do_przerzucenia\\studia\\programowanie\\person_detect"
 
 def load_classes(file_path):
     with open(file_path, "r") as f:
@@ -21,9 +20,6 @@ net.setInputSize(320, 320)
 net.setInputScale(1.0 / 127.5)
 net.setInputMean((127.5, 127.5, 127.5))
 net.setInputSwapRB(True)
-
-# wczytanie nazw klas coco
-class_names = load_classes(CLASSES_PATH)
 
 @app.route("/detect", methods=["GET"])
 def detect_people():
@@ -42,7 +38,7 @@ def detect_people():
 
     person_count = 0
     for class_id, confidence, box in zip(class_ids.flatten(), confidences.flatten(), boxes):
-        if class_names[class_id - 1].lower() == "person":
+        if class_id == 1: # jest to numer klasy person w coco, zrezygnowałem z pobierania całego pliku z klasami
             person_count += 1
             x, y, w, h = box
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -58,3 +54,5 @@ def detect_people():
     # Zwraca ilość wykrytych osób
     return jsonify({"detected_persons": person_count, "output_image": output_path})
 
+if __name__ == "__main__":
+    app.run(debug=True)
