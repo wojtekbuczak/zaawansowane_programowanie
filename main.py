@@ -9,11 +9,6 @@ MODEL_PATH = "ssd_mobilenet_v3_large_coco.pb"
 CONFIG_PATH = "ssd_mobilenet_v3_large_coco.pbtxt"
 OUTPUT_DIR = r"C:\\do_przerzucenia\\studia\\programowanie\\person_detect"
 
-def load_classes(file_path):
-    with open(file_path, "r") as f:
-        classes = [line.strip() for line in f.readlines()]
-    return classes
-
 # inicjalizacja modelu
 net = cv2.dnn_DetectionModel(MODEL_PATH, CONFIG_PATH)
 net.setInputSize(320, 320)
