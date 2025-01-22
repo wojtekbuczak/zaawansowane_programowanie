@@ -33,7 +33,7 @@ def process_image(image_path, task_id):
     image = cv2.imread(image_path)
     if image is None:
         print(f"Nie można wczytać obrazu: {image_path}")
-        return
+        return 0
 
     # Detekcja obiektów na zdjęciu
     class_ids, confidences, boxes = net.detect(image, confThreshold=0.5)
@@ -57,6 +57,7 @@ def process_image(image_path, task_id):
     else:
         print(f"Nie udało się zapisać zmodyfikowanego obrazu dla {image_path}.")
 
+    return person_count
 # Endpoint do dodawania zadań
 def send_to_queue(image_path, task_id):
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
@@ -83,8 +84,7 @@ def detect_people():
     if not image_path or not os.path.exists(image_path):
         return jsonify({"error": "Path not found or invalid"}), 400
 
-    # Sprawdzenie, czy to folder
-    if os.path.isdir(image_path):
+    if os.path.isdir(image_path):  # Jeśli podano folder
         image_files = [
             os.path.join(image_path, file)
             for file in os.listdir(image_path)
@@ -93,43 +93,38 @@ def detect_people():
         if not image_files:
             return jsonify({"error": "No valid image files found in the folder"}), 400
 
-        # Zakolejkowanie wszystkich plików w folderze
-        task_ids = []
+        detection_results = []  # Lista przechowująca wyniki detekcji
         for image_file in image_files:
             task_id = str(uuid.uuid4())
             send_to_queue(image_file, task_id)
-            task_ids.append(task_id)
+
+            # Proces detekcji na bieżąco
+            person_count = process_image(image_file, task_id)
+            detection_results.append({
+                "task_id": task_id,
+                "image": image_file,
+                "persons_detected": person_count
+            })
 
         return jsonify({
-            "message": f"{len(task_ids)} images have been queued for processing.",
-            "task_ids": task_ids
+            "message": f"{len(detection_results)} images have been processed and queued for further processing.",
+            "detection_results": detection_results
         })
 
-    # Jeśli to plik, zakolejkuj go
-    elif os.path.isfile(image_path):
+    elif os.path.isfile(image_path):  # Jeśli podano plik
         task_id = str(uuid.uuid4())
         send_to_queue(image_path, task_id)
+
+        # Proces detekcji na bieżąco
+        person_count = process_image(image_path, task_id)
         return jsonify({
-            "message": "Image has been queued for processing.",
-            "task_id": task_id
+            "message": "Image has been processed and queued for further processing.",
+            "task_id": task_id,
+            "image": image_path,
+            "persons_detected": person_count
         })
     else:
         return jsonify({"error": "Invalid path"}), 400
-
-# Obsługa wiadomości RabbitMQ
-def callback(ch, method, properties, body):
-    message = json.loads(body)
-    image_path = message.get("image_path")
-    task_id = message.get("task_id")
-
-    if image_path and task_id:
-        print(f"[x] Przetwarzanie obrazu: {image_path} dla zadania {task_id}")
-        process_image(image_path, task_id)
-    else:
-        print("[x] Otrzymano nieprawidłową wiadomość: brak 'image_path' lub 'task_id'")
-
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-
 
 # Konfiguracja RabbitMQ
 def main():
