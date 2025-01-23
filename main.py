@@ -5,10 +5,12 @@ import pika
 import uuid
 import json
 import requests
-from threading import Thread
 
 
 app = Flask(__name__)
+
+# Słownik do przechowywania statusów zadań
+task_status = {}
 
 # pliki potrzebne do załadowania
 MODEL_PATH = "ssd_mobilenet_v3_large_coco.pb"
@@ -45,6 +47,12 @@ def download_image(url, task_id):
 
 # Funkcja do przetwarzania zdjęcia
 def process_image(image_path, task_id):
+    # Aktualizacja statusu na "in progress"
+    task_status[task_id] = {
+        "status": "in progress",
+        "result": None
+    }
+
     print(f"[x] Przetwarzanie obrazu: {image_path} dla zadania {task_id}")
 
     # Próba wczytania obrazu
@@ -59,6 +67,8 @@ def process_image(image_path, task_id):
     # Sprawdzanie, czy cokolwiek wykryto
     if not detection_result or len(detection_result) != 3:
         print(f"Brak detekcji na obrazie {image_path}")
+        task_status[task_id]["status"] = "completed"
+        task_status[task_id]["result"] = {"persons_detected": 0}
         return 0
 
     class_ids, confidences, boxes = detection_result
@@ -86,9 +96,13 @@ def process_image(image_path, task_id):
     else:
         print(f"Nie udało się zapisać zmodyfikowanego obrazu dla {image_path}.")
 
+    # Aktualizacja statusu na "completed" z wynikiem
+    task_status[task_id]["status"] = "completed"
+    task_status[task_id]["result"] = {"persons_detected": person_count}
+
     return person_count
 
-# Endpoint do dodawania zadań
+#Dodawania zadań
 def send_to_queue(image_path, task_id):
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
     channel = connection.channel()
@@ -126,6 +140,13 @@ def detect_people():
         detection_results = []  # Lista przechowująca wyniki detekcji
         for image_file in image_files:
             task_id = str(uuid.uuid4())
+
+            # Dodanie statusu "queued" do słownika
+            task_status[task_id] = {
+                "status": "queued",
+                "result": None
+            }
+
             send_to_queue(image_file, task_id)
 
             # Proces detekcji na bieżąco
@@ -143,6 +164,13 @@ def detect_people():
 
     elif os.path.isfile(image_path):  # Jeśli podano plik
         task_id = str(uuid.uuid4())
+
+        # Dodanie statusu "queued" do słownika
+        task_status[task_id] = {
+            "status": "queued",
+            "result": None
+        }
+
         send_to_queue(image_path, task_id)
 
         # Proces detekcji na bieżąco
@@ -164,6 +192,11 @@ def detect_from_url():
         return jsonify({"error": "Image URL not provided"}), 400
 
     task_id = str(uuid.uuid4())
+    # Dodanie statusu "queued" do słownika
+    task_status[task_id] = {
+        "status": "queued",
+        "result": None
+    }
     image_path = download_image(image_url, task_id)
     if not image_path:
         return jsonify({"error": "Failed to download image"}), 400
@@ -180,6 +213,23 @@ def detect_from_url():
         "task_id": task_id,
         "image_url": image_url,
         "persons_detected": person_count
+    })
+
+@app.route("/task_status", methods=["GET"])
+def check_task_status():
+    task_id = request.args.get("task_id")
+    if not task_id:
+        return jsonify({"error": "Task ID not provided"}), 400
+
+    # Sprawdzanie statusu zadania
+    task_info = task_status.get(task_id)
+    if not task_info:
+        return jsonify({"error": "Task not found"}), 404
+
+    return jsonify({
+        "task_id": task_id,
+        "status": task_info["status"],
+        "result": task_info.get("result")  # Wynik może być `None`, jeśli zadanie wciąż trwa
     })
 
 # Konfiguracja RabbitMQ
