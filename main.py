@@ -18,6 +18,7 @@ CONFIG_PATH = "ssd_mobilenet_v3_large_coco.pbtxt"
 OUTPUT_DIR = r"C:\\do_przerzucenia\\studia\\programowanie\\person_detect"
 RABBITMQ_HOST = 'localhost'
 QUEUE_NAME = 'image_queue'
+UPLOAD_DIR = r"C:\\do_przerzucenia\\studia\\programowanie\\person_uploads"
 
 # inicjalizacja modelu
 def initialize_model():
@@ -39,8 +40,6 @@ def download_image(url, task_id):
 
         image_path = os.path.join(OUTPUT_DIR, f"{task_id}_downloaded_image.jpg")
         with open(image_path, 'wb') as f:
-            #for chunk in response.iter_content(1024):
-            #    f.write(chunk)
             f.write(response.content)
         return image_path
     return None
@@ -231,6 +230,36 @@ def check_task_status():
         "status": task_info["status"],
         "result": task_info.get("result")  # Wynik może być `None`, jeśli zadanie wciąż trwa
     })
+
+# Endpoint obsługujący przesyłanie zdjęć metodą POST
+@app.route('/detect_upload', methods=['POST'])
+def detect_upload():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part in the request"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No file selected"}), 400
+
+    # Zapisanie przesłanego pliku
+    if file:
+        # Tworzenie unikalnego ID zadania
+        task_id = str(uuid.uuid4())
+        file_extension = os.path.splitext(file.filename)[1]
+        saved_file_path = os.path.join(UPLOAD_DIR, f"{task_id}{file_extension}")
+
+        # Zapisanie przesłanego pliku w katalogu
+        file.save(saved_file_path)
+
+        # Wrzucenie zadania do kolejki RabbitMQ
+        send_to_queue(saved_file_path, task_id)
+
+        # Zwrócenie informacji zwrotnej z task_id
+        return jsonify({
+            "message": "File has been uploaded and task has been queued.",
+            "task_id": task_id
+        }), 200
+
 
 # Konfiguracja RabbitMQ
 def main():
