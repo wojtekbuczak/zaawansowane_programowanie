@@ -1,11 +1,11 @@
-def append_list(lista1: list, lista2: list) -> list:
-    lista = lista1 + lista2
+def append_list(lista1: list, lista12: list) -> list:
+    lista = lista1 + lista12
     lista2 = []
     for element in lista:
         if element not in lista2:
             lista2.append(element)
 
-    for i in range(len(lista2) -1):
+    for i in range(len(lista2)):
         lista2[i] = lista2[i] ** 3
     return lista2
 
