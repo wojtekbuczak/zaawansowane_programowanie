@@ -5,6 +5,9 @@ import pika
 import uuid
 import json
 import requests
+from threading import Thread
+import asyncio
+from aio_pika import connect_robust, Message, DeliveryMode, ExchangeType
 
 
 app = Flask(__name__)
@@ -102,7 +105,7 @@ def process_image(image_path, task_id):
     return person_count
 
 #Dodawania zadań
-def send_to_queue(image_path, task_id):
+def send_to_queuev1(image_path, task_id):
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
     channel = connection.channel()
 
@@ -281,12 +284,41 @@ def callback(ch, method, properties, body):
     print(f"[x] Odebrano zadanie: {task_id} dla obrazu {image_path}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
-if __name__ == "__main__":
-    from threading import Thread
+# Asynchroniczna obsługa kolejki RabbitMQ
+async def process_queue():
+    connection = await connect_robust(RABBITMQ_HOST)
+    async with connection:
+        channel = await connection.channel()
+        queue = await channel.declare_queue(QUEUE_NAME, durable=True)
 
+        async for message in queue:
+            async with message.process():
+                data = json.loads(message.body)
+                image_path = data["image_path"]
+                task_id = data["task_id"]
+                print(f"[x] Odebrano zadanie: {task_id} dla obrazu {image_path}")
+                process_image(image_path, task_id)
+
+# Dodawanie zadań
+async def send_to_queue(image_path, task_id):
+    connection = await connect_robust(RABBITMQ_HOST)
+    async with connection:
+        channel = await connection.channel()
+        await channel.default_exchange.publish(
+            Message(
+                body=json.dumps({"image_path": image_path, "task_id": task_id}).encode(),
+                delivery_mode=DeliveryMode.PERSISTENT,
+            ),
+            routing_key=QUEUE_NAME,
+        )
+
+if __name__ == "__main__":
+    #from threading import Thread
+    loop = asyncio.get_event_loop()
+    loop.create_task(process_queue())
     # Uruchomienie przetwarzania RabbitMQ w osobnym wątku
-    rabbit_thread = Thread(target=main, daemon=True)
-    rabbit_thread.start()
+    #rabbit_thread = Thread(target=main, daemon=True)
+    #rabbit_thread.start()
 
     #uruchomienie serwera Flask
     app.run(debug=True)
