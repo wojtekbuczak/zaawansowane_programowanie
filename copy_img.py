@@ -1,7 +1,6 @@
 import shutil
 import os
 
-
 def copy_image(image_path, output_folder, copies, prefix="test"):
 
     os.makedirs(output_folder, exist_ok=True)
@@ -15,10 +14,8 @@ def copy_image(image_path, output_folder, copies, prefix="test"):
         shutil.copy(image_path, new_path)
         print(f"Skopiowano jako {new_name}")
 
-
-# Przykład użycia
-original_image = r"C:\\do_przerzucenia\\studia\\programowanie\\person_pics\\test.jpg"  # Zamień na rzeczywistą ścieżkę
-output_directory = "C:\\do_przerzucenia\\studia\\programowanie\\person_pics"  # Zamień na rzeczywistą ścieżkę
+original_image = r"C:\\do_przerzucenia\\studia\\programowanie\\person_pics\\test.jpg"
+output_directory = "C:\\do_przerzucenia\\studia\\programowanie\\person_pics"
 number_of_copies = 500
 
 copy_image(original_image, output_directory, number_of_copies)
