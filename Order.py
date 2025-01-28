@@ -7,5 +7,7 @@ class Order:
 
     def __str__(self):
         books_str = ", ".join(str(book) for book in self.books)
-        return (f"Order(employee={self.employee}, student={self.student}, "
-                f"books=[{books_str}], order_date={self.order_date})")
+        return (
+            f"Order(employee={self.employee}, student={self.student}, "
+            f"books=[{books_str}], order_date={self.order_date})"
+        )

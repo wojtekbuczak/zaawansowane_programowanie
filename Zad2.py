@@ -20,9 +20,36 @@ book4 = Book(library2, "2018-07-19", "Tolkien", "J.R.R.", 310)
 book5 = Book(library1, "2017-03-10", "Mark", "Twain", 200)
 
 # Pracownicy
-employee1 = Employee("Alice", "Johnson", "2015-06-01", "1985-09-15", "New York", "5th Avenue", "10001", "123-456-789")
-employee2 = Employee("Bob", "Williams", "2018-08-12", "1990-04-20", "Los Angeles", "Sunset Blvd", "90001", "987-654-321")
-employee3 = Employee("Charlie", "Brown", "2020-03-05", "1995-12-25", "New York", "5th Avenue", "10001", "123-456-789")
+employee1 = Employee(
+    "Alice",
+    "Johnson",
+    "2015-06-01",
+    "1985-09-15",
+    "New York",
+    "5th Avenue",
+    "10001",
+    "123-456-789",
+)
+employee2 = Employee(
+    "Bob",
+    "Williams",
+    "2018-08-12",
+    "1990-04-20",
+    "Los Angeles",
+    "Sunset Blvd",
+    "90001",
+    "987-654-321",
+)
+employee3 = Employee(
+    "Charlie",
+    "Brown",
+    "2020-03-05",
+    "1995-12-25",
+    "New York",
+    "5th Avenue",
+    "10001",
+    "123-456-789",
+)
 
 # Zamówienia
 order1 = Order(employee1, student1, [book1, book2], "2023-12-01")
