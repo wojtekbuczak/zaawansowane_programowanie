@@ -2,6 +2,7 @@ import requests
 from typing import Optional, List
 import argparse
 
+
 class Brewery:
     def __init__(
         self,
@@ -42,6 +43,7 @@ class Brewery:
             f"Website: {self.website_url or 'N/A'}\n"
         )
 
+
 def fetch_breweries(city: Optional[str] = None) -> List[Brewery]:
     url = "https://api.openbrewerydb.org/v1/breweries"
     params = {"per_page": 20}
@@ -78,13 +80,11 @@ def fetch_breweries(city: Optional[str] = None) -> List[Brewery]:
         print(f"Error fetching breweries: {e}")
         return []
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fetch breweries information.")
     parser.add_argument(
-        "--city",
-        type=str,
-        help="Filter breweries by city.",
-        required=False
+        "--city", type=str, help="Filter breweries by city.", required=False
     )
     args = parser.parse_args()
 

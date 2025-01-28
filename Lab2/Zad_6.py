@@ -9,6 +9,7 @@ def append_list(lista1: list, lista12: list) -> list:
         lista2[i] = lista2[i] ** 3
     return lista2
 
+
 lista1 = [1, 2, 3, 4]
 lista2 = [4, 5, 6, 7]
 
