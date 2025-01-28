@@ -74,9 +74,7 @@ class LinksList(Resource):
             with open('links.csv', 'r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    # Tworzenie obiektu Links na podstawie wiersza
                     link = Links(row['movieId'], row['imdbId'], row['tmdbId'])
-                    # Serializacja obiektu przy użyciu __dict__
                     links.append(link.__dict__)
         except FileNotFoundError:
             return {"error": "File not found"}, 404
@@ -94,9 +92,7 @@ class RatingList(Resource):
             with open('ratings.csv', 'r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    # Tworzenie obiektu Links na podstawie wiersza
                     rating = Ratings(row['userId'], row['movieId'], row['rating'], row['timestamp'])
-                    # Serializacja obiektu przy użyciu __dict__
                     ratings.append(rating.__dict__)
         except FileNotFoundError:
             return {"error": "File not found"}, 404
@@ -107,22 +103,20 @@ class RatingList(Resource):
 # Klasa obsługująca endpoint /tags
 class TagList(Resource):
     def get(self):
-        links = []
+        tags = []
 
         # Pobranie danych z pliku CSV
         try:
-            with open('links.csv', 'r', encoding='utf-8') as file:
+            with open('tags.csv', 'r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    # Tworzenie obiektu Links na podstawie wiersza
-                    link = Links(row['movieId'], row['imdbId'], row['tmdbId'])
-                    # Serializacja obiektu przy użyciu __dict__
-                    links.append(link.__dict__)
+                    tag = Tags(row['userId'], row['movieId'], row['tag'], row['timestamp'])
+                    tags.append(tag.__dict__)
         except FileNotFoundError:
             return {"error": "File not found"}, 404
 
         # Zwracanie listy zserializowanych obiektów
-        return links, 200
+        return tags, 200
 
 # Rejestracja endpointów
 api.add_resource(MoviesList, '/movies')
