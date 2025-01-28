@@ -7,4 +7,5 @@ class Book:
         self.number_of_pages = number_of_pages
 
     def __str__(self):
-        return f''
+        return (f"Book(library={self.library}, publication_date={self.publication_date}, "
+                f"author={self.author_name} {self.author_surname}, number_of_pages={self.number_of_pages})")
